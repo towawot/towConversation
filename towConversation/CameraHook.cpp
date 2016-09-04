@@ -1,10 +1,13 @@
 #include <skse.h>
 #include <skse/GameReferences.h>
+#include <skse/GameInput.h>
+#include <skse/GameMenus.h>
 #include <skse/GameCamera.h>
+#include <skse/GameSettings.h>
 
-#include "Address.h"
-#include "CameraUtils.h"
 #include "Papyrus.h"
+#include "Address.h"
+#include "Utils.h"
 #include "CameraHook.h"
 
 #define _USE_MATH_DEFINES
@@ -15,19 +18,6 @@ float g_worldfovTo;;
 float g_firstfovTo;
 int   g_fovStep;
 TESObjectREFR* refTarget = NULL;
-
-#define DEFINE_MEMBER_FN_EX(className, functionName, retnType, address, ...)		\
-	typedef retnType (className::* _##functionName##_type)(__VA_ARGS__);			\
-																					\
-	inline _##functionName##_type * _##functionName##_GetPtr(void)					\
-	{																				\
-		static const UInt32 _address = address;										\
-		return (_##functionName##_type *)&_address;									\
-	}
-
-#define CALL_MEMBER_FN_EX(obj, fn)	\
-	((*(obj)).*(*(_##fn##_GetPtr())))
-
 
 DEFINE_MEMBER_FN_EX(PlayerCharacter, SetAngleZ, void, ADDR_SetAngleZ, float)
 DEFINE_MEMBER_FN_EX(PlayerCharacter, SetAngleX, void, ADDR_SetAngleX, float)
@@ -45,6 +35,7 @@ static bool CalcAngle(TESObjectREFR* target, AngleZX* angle)
 		angleDiffZ = baseAngle.z - (double)player->rot.z;
 		angleDiffX = baseAngle.x - (double)player->rot.x;
 
+// 		/*
 		PlayerCamera* camera = PlayerCamera::GetSingleton();
 		if (camera->cameraState == camera->cameraStates[camera->kCameraState_ThirdPerson2])
 		{
@@ -55,6 +46,7 @@ static bool CalcAngle(TESObjectREFR* target, AngleZX* angle)
 				angleDiffX -= (double)tps->diffRotX;
 			}
 		}
+// 		*/
 
 		while (angleDiffZ < -M_PI)
 			angleDiffZ += 2*M_PI;
@@ -63,7 +55,7 @@ static bool CalcAngle(TESObjectREFR* target, AngleZX* angle)
 		while (angleDiffX < -M_PI)
 			angleDiffX += 2*M_PI;
 		while (angleDiffX > M_PI)
-			angleDiffX -= 2*M_PI;
+		angleDiffX -= 2*M_PI;
 	}
 	angleDiffZ = angleDiffZ / (g_cameraSpeed * 60 / 2000);
 	angleDiffX = angleDiffX / (g_cameraSpeed * 60 / 2000);
@@ -97,7 +89,9 @@ static void RotateCamera(TESObjectREFR* target)
 
 	AngleZX angle;
 	if (!CalcAngle(target, &angle))
+	{
 		return;
+	}
 
 	PlayerCharacter* player = *g_thePlayer;
 	PlayerCamera* camera = PlayerCamera::GetSingleton();
@@ -140,9 +134,12 @@ static void RotateCamera(TESObjectREFR* target)
 }
 
 
+// typedef TESObjectREFR** (*_GetRefObjectFromHandle)(UInt32*, TESObjectREFR**);
+// static const _GetRefObjectFromHandle GetRefObjectFromHandle = (_GetRefObjectFromHandle)ADDR_GetRefObjectFromHandle;
+
 static void OnCameraMove(UInt32* stack, UInt32 ecx)
 {
-	if (g_fovStep > 0)
+	if (g_Register && g_fovStep > 0)
 	{
 		PlayerCamera* camera = PlayerCamera::GetSingleton();
 		if (g_fovStep == 1)
@@ -158,7 +155,9 @@ static void OnCameraMove(UInt32* stack, UInt32 ecx)
 			float diff2 = g_firstfovTo - camera->firstPersonFOV;
 			camera->firstPersonFOV += diff2 / g_fovStep;
 			if(refTarget)
+			{
 				RotateCamera(refTarget);
+			}
 		}
 		g_fovStep--;
 	}

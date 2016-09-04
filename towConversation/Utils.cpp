@@ -1,12 +1,14 @@
+
 #include <skse.h>
-#include <skse/GameData.h>
-#include <skse/GameRTTI.h>
 #include <skse/GameReferences.h>
+#include <skse/GameObjects.h>
 #include <skse/GameCamera.h>
 #include <skse/NiNodes.h>
+#include <skse/GameData.h>
+#include <skse/GameRTTI.h>
 
 #include "Address.h"
-#include "CameraUtils.h"
+#include "Utils.h"
 
 void GetAngle(const NiPoint3 &from, const NiPoint3 &to, AngleZX* angle)
 {
@@ -82,8 +84,10 @@ void GetCameraPos(NiPoint3* pos)
 	pos->z = z;
 }
 
+
+
 // アクターのノードのワールド座標を取得
-bool GetNodePosition(Actor* actor, const char* nodeName, NiPoint3* point)
+static bool GetNodePosition(Actor* actor, const char* nodeName, NiPoint3* point)
 {
 	bool bResult = false;
 
@@ -108,7 +112,7 @@ bool GetNodePosition(Actor* actor, const char* nodeName, NiPoint3* point)
 }
 
 // アクターのTorso(胴)の位置を取得
-bool GetTorsoPos(Actor* actor, NiPoint3* point)
+static bool GetTorsoPos(Actor* actor, NiPoint3* point)
 {
 	TESRace* race = actor->race;
 	BGSBodyPartData* bodyPart = race->bodyPartData;

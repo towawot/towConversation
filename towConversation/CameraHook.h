@@ -1,4 +1,3 @@
-#pragma once
 
 extern float g_cameraSpeed;
 extern float g_worldfovTo;;
@@ -10,3 +9,4 @@ namespace CameraHook
 {
 	void Init(void);
 }
+
